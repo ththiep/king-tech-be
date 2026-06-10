@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { config } from "./config/index.js";
+import { AppError } from "./utils/errors.js";
 import routes from "./routes/index.js";
 import { randomUUID } from "node:crypto";
 import { ApiResponse } from "./utils/response.js";
@@ -33,13 +34,22 @@ app.use((req, res) => {
 
 // Global Error Handler
 app.use((err, req, res, next) => {
+  console.error(`[ERROR] ${req.method} ${req.path} ->`, err);
+
   const statusCode = err.statusCode || 500;
-  const message = statusCode >= 500 ? "Internal server error" : err.message || "Request failed";
+  
+  // Clean message for client
+  let message = "Internal server error";
+  if (err.name === 'AppError') {
+    message = err.message;
+  } else if (statusCode < 500) {
+    message = err.message || "Request failed";
+  }
 
   ApiResponse.error(
     res,
     message,
     statusCode,
-    { code: err.code || "request_error" }
+    { code: err.code || "request_error", stack: err.stack, originalMessage: err.message }
   );
 });

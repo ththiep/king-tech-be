@@ -1,9 +1,9 @@
-import { listContacts, createContact } from "../models/db.js";
+import { contactService } from "../services/contact.service.js";
 import { ApiResponse } from "../utils/response.js";
 
 export async function list(req, res, next) {
   try {
-    const contacts = await listContacts();
+    const contacts = await contactService.listContacts(req.user);
     ApiResponse.success(res, contacts, "Contacts retrieved successfully");
   } catch (err) {
     next(err);
@@ -12,7 +12,7 @@ export async function list(req, res, next) {
 
 export async function create(req, res, next) {
   try {
-    const contact = await createContact(req.body || {});
+    const contact = await contactService.createContact(req.body, req.user);
     ApiResponse.success(res, contact, "Contact created successfully", 201);
   } catch (err) {
     next(err);
