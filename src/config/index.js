@@ -1,4 +1,12 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+import path from "path";
+
+const env = process.env.NODE_ENV || "development";
+
+// Load specific environment file
+dotenv.config({ path: path.resolve(process.cwd(), `.env.${env}`) });
+// Fallback to default .env if exists
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 const toNumber = (value, fallback) => {
   const parsed = Number(value);

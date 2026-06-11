@@ -46,10 +46,16 @@ app.use((err, req, res, next) => {
     message = err.message || "Request failed";
   }
 
+  const errorDetails = { code: err.code || "request_error" };
+  if (config.env !== "production") {
+    errorDetails.stack = err.stack;
+    errorDetails.originalMessage = err.message;
+  }
+
   ApiResponse.error(
     res,
     message,
     statusCode,
-    { code: err.code || "request_error", stack: err.stack, originalMessage: err.message }
+    errorDetails
   );
 });
