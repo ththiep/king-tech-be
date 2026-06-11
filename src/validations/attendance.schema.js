@@ -8,7 +8,7 @@ export const attendanceSchema = {
       date: z.string().min(1, "Date is required"),
       checkIn: z.string().optional(),
       checkOut: z.string().optional(),
-      status: z.enum(["present", "absent", "late", "half_day", "leave"]).default("present"),
+      status: z.string().default("present"),
       note: z.string().optional(),
     }),
   }),

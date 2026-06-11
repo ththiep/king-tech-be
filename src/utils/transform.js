@@ -10,7 +10,7 @@ export function keysToSnakeCase(obj) {
   if (typeof obj !== "object" || obj === null) return obj;
   if (Array.isArray(obj)) return obj.map(keysToSnakeCase);
   return Object.keys(obj).reduce((acc, key) => {
-    acc[toSnakeCase(key)] = obj[key];
+    acc[toSnakeCase(key)] = keysToSnakeCase(obj[key]);
     return acc;
   }, {});
 }
@@ -19,7 +19,7 @@ export function keysToCamelCase(obj) {
   if (typeof obj !== "object" || obj === null) return obj;
   if (Array.isArray(obj)) return obj.map(keysToCamelCase);
   return Object.keys(obj).reduce((acc, key) => {
-    acc[toCamelCase(key)] = obj[key];
+    acc[toCamelCase(key)] = keysToCamelCase(obj[key]);
     return acc;
   }, {});
 }

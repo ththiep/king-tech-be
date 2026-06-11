@@ -14,6 +14,8 @@ import * as orderController from "../controllers/order.controller.js";
 import * as contactController from "../controllers/contact.controller.js";
 import * as employeeController from "../controllers/employee.controller.js";
 import * as attendanceController from "../controllers/attendance.controller.js";
+import * as uploadController from "../controllers/upload.controller.js";
+import * as settingController from "../controllers/setting.controller.js";
 
 const router = Router();
 
@@ -52,8 +54,15 @@ router.patch("/api/v1/employees/:id", requireAuth, validate(employeeSchema.updat
 router.put("/api/v1/employees/:id", requireAuth, validate(employeeSchema.update), employeeController.update);
 router.delete("/api/v1/employees/:id", requireAuth, employeeController.remove);
 
+// Uploads
+router.post("/api/v1/upload", requireAuth, uploadController.upload);
+
 // Attendance
 router.get("/api/v1/attendance", requireAuth, attendanceController.list);
 router.post("/api/v1/attendance", requireAuth, validate(attendanceSchema.create), attendanceController.create);
+
+// Settings
+router.get("/api/v1/settings", requireAuth, settingController.getSettings);
+router.post("/api/v1/settings", requireAuth, settingController.updateSettings);
 
 export default router;
