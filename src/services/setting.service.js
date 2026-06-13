@@ -1,19 +1,26 @@
 import { settingRepository } from "../repositories/setting.repository.js";
 
 const DEFAULT_SETTINGS = {
-  departments: ["Kinh doanh", "Kỹ thuật", "Nhân sự", "Kế toán", "Marketing"],
-  workStatuses: {
-    active: { labelVi: "Đang làm", labelEn: "Active", tone: "success" },
-    on_leave: { labelVi: "Nghỉ phép", labelEn: "On Leave", tone: "warning" },
-    inactive: { labelVi: "Tạm nghỉ", labelEn: "Inactive", tone: "danger" },
-  },
-  attendanceStatuses: {
-    present: { labelVi: "Có mặt", labelEn: "Present", tone: "success" },
-    late: { labelVi: "Đi trễ", labelEn: "Late", tone: "warning" },
-    leave: { labelVi: "Nghỉ phép", labelEn: "Leave", tone: "info" },
-    absent: { labelVi: "Vắng", labelEn: "Absent", tone: "danger" },
-    half_day: { labelVi: "Nửa ngày", labelEn: "Half Day", tone: "warning" },
-  }
+  departments: [
+    { id: "d1000000-0000-0000-0000-000000000000", labelVi: "Kinh doanh", labelEn: "Sales", tone: "neutral" },
+    { id: "d2000000-0000-0000-0000-000000000000", labelVi: "Kỹ thuật", labelEn: "Engineering", tone: "neutral" },
+    { id: "d3000000-0000-0000-0000-000000000000", labelVi: "Nhân sự", labelEn: "HR", tone: "neutral" },
+    { id: "d4000000-0000-0000-0000-000000000000", labelVi: "Kế toán", labelEn: "Accounting", tone: "neutral" },
+    { id: "d5000000-0000-0000-0000-000000000000", labelVi: "Marketing", labelEn: "Marketing", tone: "neutral" }
+  ],
+  workStatuses: [
+    { id: "w1000000-0000-0000-0000-000000000000", labelVi: "Đang làm", labelEn: "Working", tone: "success" },
+    { id: "w2000000-0000-0000-0000-000000000000", labelVi: "Thử việc", labelEn: "Probation", tone: "info" },
+    { id: "w3000000-0000-0000-0000-000000000000", labelVi: "Bán thời gian", labelEn: "Part-time", tone: "warning" },
+    { id: "w4000000-0000-0000-0000-000000000000", labelVi: "Đã nghỉ", labelEn: "Resigned", tone: "danger" }
+  ],
+  attendanceStatuses: [
+    { id: "a1000000-0000-0000-0000-000000000000", labelVi: "Có mặt", labelEn: "Present", tone: "success" },
+    { id: "a2000000-0000-0000-0000-000000000000", labelVi: "Đi trễ", labelEn: "Late", tone: "warning" },
+    { id: "a3000000-0000-0000-0000-000000000000", labelVi: "Nghỉ phép", labelEn: "Leave", tone: "info" },
+    { id: "a4000000-0000-0000-0000-000000000000", labelVi: "Vắng", labelEn: "Absent", tone: "danger" },
+    { id: "a5000000-0000-0000-0000-000000000000", labelVi: "Nửa ngày", labelEn: "Half Day", tone: "warning" }
+  ]
 };
 
 class SettingService {
