@@ -1,10 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
-import { config } from "../config/index.js";
+import { supabase } from "../models/db.js";
 import { InternalServerError } from "../utils/errors.js";
-
-export const supabase = createClient(config.supabaseUrl || "http://dummy", config.supabaseKey || "dummy", {
-  auth: { persistSession: false },
-});
 
 export class BaseRepository {
   constructor(tableName) {

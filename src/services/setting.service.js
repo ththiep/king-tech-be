@@ -1,4 +1,3 @@
-import { settingRepository } from "../repositories/setting.repository.js";
 
 const DEFAULT_SETTINGS = {
   departments: [
@@ -23,10 +22,13 @@ const DEFAULT_SETTINGS = {
   ]
 };
 
-class SettingService {
+export class SettingService {
+  constructor({ settingRepository }) {
+    this.settingRepository = settingRepository;
+  }
   async getSettings(user) {
     const { tenant } = user;
-    const dbRecord = await settingRepository.getByTenant(tenant);
+    const dbRecord = await this.settingRepository.getByTenant(tenant);
     
     if (!dbRecord) {
       return {
@@ -45,7 +47,7 @@ class SettingService {
 
   async updateSettings(payload, user) {
     const { tenant } = user;
-    const dbRecord = await settingRepository.upsertByTenant(tenant, {
+    const dbRecord = await this.settingRepository.upsertByTenant(tenant, {
       departments: payload.departments,
       workStatuses: payload.workStatuses,
       attendanceStatuses: payload.attendanceStatuses
@@ -60,4 +62,4 @@ class SettingService {
   }
 }
 
-export const settingService = new SettingService();
+

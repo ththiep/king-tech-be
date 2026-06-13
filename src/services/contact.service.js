@@ -1,9 +1,11 @@
-import { contactRepository } from "../repositories/contact.repository.js";
 import { randomUUID } from "node:crypto";
 
-class ContactService {
+export class ContactService {
+  constructor({ contactRepository }) {
+    this.contactRepository = contactRepository;
+  }
   async listContacts(user) {
-    return await contactRepository.list(user.tenant);
+    return await this.contactRepository.list(user.tenant);
   }
 
   async createContact(payload, user) {
@@ -12,8 +14,8 @@ class ContactService {
       id: payload.id || randomUUID(),
       tenant: user.tenant,
     };
-    return await contactRepository.create(newContact);
+    return await this.contactRepository.create(newContact);
   }
 }
 
-export const contactService = new ContactService();
+

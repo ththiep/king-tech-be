@@ -1,14 +1,16 @@
-import { productRepository } from "../repositories/product.repository.js";
 import { NotFoundError } from "../utils/errors.js";
 import { randomUUID } from "node:crypto";
 
-class ProductService {
+export class ProductService {
+  constructor({ productRepository }) {
+    this.productRepository = productRepository;
+  }
   async listProducts(user) {
-    return await productRepository.list(user.tenant);
+    return await this.productRepository.list(user.tenant);
   }
 
   async getProductById(id, user) {
-    const product = await productRepository.getById(id, user.tenant);
+    const product = await this.productRepository.getById(id, user.tenant);
     if (!product) {
       throw new NotFoundError("Product not found");
     }
@@ -21,13 +23,13 @@ class ProductService {
       id: payload.id || randomUUID(),
       tenant: user.tenant,
     };
-    return await productRepository.create(newProduct);
+    return await this.productRepository.create(newProduct);
   }
 
   async updateProduct(id, payload, user) {
     await this.getProductById(id, user); // check existence
-    return await productRepository.updateById(id, user.tenant, payload);
+    return await this.productRepository.updateById(id, user.tenant, payload);
   }
 }
 
-export const productService = new ProductService();
+

@@ -5,6 +5,7 @@ import { AppError } from "./utils/errors.js";
 import routes from "./routes/index.js";
 import { randomUUID } from "node:crypto";
 import { ApiResponse } from "./utils/response.js";
+import { container } from "./container.js";
 
 export const app = express();
 
@@ -16,6 +17,7 @@ app.use(express.json({ limit: "1mb" }));
 app.use((req, res, next) => {
   req.id = req.headers["x-request-id"] || randomUUID();
   res.setHeader("X-Request-Id", req.id);
+  req.container = container.createScope();
   next();
 });
 

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // Dùng chung cho phân trang, lọc, sắp xếp
-export const paginationQuerySchema = z.object({
+const paginationQuerySchema = z.object({
   page: z.coerce.number().min(1).default(1),
   limit: z.coerce.number().min(1).max(1000).default(20),
   search: z.string().optional(),

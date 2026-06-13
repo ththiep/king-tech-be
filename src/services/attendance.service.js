@@ -1,15 +1,17 @@
-import { attendanceRepository } from "../repositories/attendance.repository.js";
-import { employeeRepository } from "../repositories/employee.repository.js";
 import { NotFoundError } from "../utils/errors.js";
 
-class AttendanceService {
+export class AttendanceService {
+  constructor({ attendanceRepository, employeeRepository }) {
+    this.attendanceRepository = attendanceRepository;
+    this.employeeRepository = employeeRepository;
+  }
   async listAttendance(user) {
-    return await attendanceRepository.list(user.tenant);
+    return await this.attendanceRepository.list(user.tenant);
   }
 
   async upsertAttendance(payload, user) {
     // Security: Verify employee belongs to the same tenant
-    const employee = await employeeRepository.getById(payload.employeeId || payload.employee_id, user.tenant);
+    const employee = await this.employeeRepository.getById(payload.employeeId || payload.employee_id, user.tenant);
     if (!employee) {
       throw new NotFoundError("Employee not found or does not belong to your tenant");
     }
@@ -18,8 +20,8 @@ class AttendanceService {
       ...payload,
       tenant: user.tenant,
     };
-    return await attendanceRepository.upsertAttendance(record);
+    return await this.attendanceRepository.upsertAttendance(record);
   }
 }
 
-export const attendanceService = new AttendanceService();
+

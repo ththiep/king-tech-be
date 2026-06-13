@@ -1,8 +1,8 @@
-import { attendanceService } from "../services/attendance.service.js";
 import { ApiResponse } from "../utils/response.js";
 
 export async function list(req, res, next) {
   try {
+    const attendanceService = req.container.resolve('attendanceService');
     const records = await attendanceService.listAttendance(req.user);
     ApiResponse.success(res, records, "Attendance retrieved successfully");
   } catch (err) {
@@ -12,6 +12,7 @@ export async function list(req, res, next) {
 
 export async function create(req, res, next) {
   try {
+    const attendanceService = req.container.resolve('attendanceService');
     const record = await attendanceService.upsertAttendance(req.body, req.user);
     ApiResponse.success(res, record, "Attendance updated successfully", 201);
   } catch (err) {

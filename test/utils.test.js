@@ -14,7 +14,7 @@ import {
   NotFoundError,
   InternalServerError,
 } from "../src/utils/errors.js";
-import { uploadService } from "../src/services/upload.service.js";
+import { container } from "../src/container.js";
 
 test("transform utilities", async (t) => {
   await t.test("toSnakeCase converts camelCase to snake_case", () => {
@@ -118,6 +118,7 @@ test("custom error classes", async (t) => {
 });
 
 test("upload service", async (t) => {
+  const uploadService = container.resolve('uploadService');
   await t.test("uploadBase64Image returns input string as is if not base64", async () => {
     const normalUrl = "https://example.com/avatar.png";
     const result = await uploadService.uploadBase64Image(normalUrl, "tenant1");

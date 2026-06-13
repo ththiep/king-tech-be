@@ -94,3 +94,56 @@ test("auth middleware", async (t) => {
     assert.equal(responseBody.message, "Unauthorized: Invalid or expired token");
   });
 });
+
+import { createRateLimiter } from "../src/middlewares/rateLimit.js";
+
+test("rate limiter middleware", async (t) => {
+  await t.test("should pass when requests are below limit", () => {
+    const limiter = createRateLimiter({ windowMs: 10000, max: 2 });
+    const req = { ip: "127.0.0.1" };
+    let nextCalled = 0;
+    const next = () => {
+      nextCalled++;
+    };
+    const res = {};
+
+    limiter(req, res, next);
+    limiter(req, res, next);
+
+    assert.equal(nextCalled, 2);
+  });
+
+  await t.test("should return 429 when request limit is exceeded", () => {
+    const limiter = createRateLimiter({ windowMs: 10000, max: 2, message: "Limit exceeded" });
+    const req = { ip: "127.0.0.2" };
+    let nextCalled = 0;
+    const next = () => {
+      nextCalled++;
+    };
+    
+    let statusCode = null;
+    let responseBody = null;
+    const res = {
+      status(code) {
+        statusCode = code;
+        return this;
+      },
+      json(body) {
+        responseBody = body;
+        return this;
+      }
+    };
+
+    // First 2 requests pass
+    limiter(req, res, next);
+    limiter(req, res, next);
+    
+    // 3rd request is blocked
+    limiter(req, res, next);
+
+    assert.equal(nextCalled, 2);
+    assert.equal(statusCode, 429);
+    assert.equal(responseBody.success, false);
+    assert.equal(responseBody.message, "Limit exceeded");
+  });
+});

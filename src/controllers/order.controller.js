@@ -1,8 +1,8 @@
-import { orderService } from "../services/order.service.js";
 import { ApiResponse } from "../utils/response.js";
 
 export async function list(req, res, next) {
   try {
+    const orderService = req.container.resolve('orderService');
     const orders = await orderService.listOrders(req.user);
     ApiResponse.success(res, orders, "Orders retrieved successfully");
   } catch (err) {
@@ -12,6 +12,7 @@ export async function list(req, res, next) {
 
 export async function create(req, res, next) {
   try {
+    const orderService = req.container.resolve('orderService');
     const order = await orderService.createOrder(req.body, req.user);
     ApiResponse.success(res, order, "Order created successfully", 201);
   } catch (err) {

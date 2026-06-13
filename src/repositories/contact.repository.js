@@ -1,7 +1,7 @@
 import { BaseRepository } from "./base.repository.js";
 import { keysToSnakeCase, keysToCamelCase } from "../utils/transform.js";
 
-class ContactRepository extends BaseRepository {
+export class ContactRepository extends BaseRepository {
   constructor() {
     super("contacts");
   }
@@ -18,4 +18,4 @@ class ContactRepository extends BaseRepository {
   }
 }
 
-export const contactRepository = new ContactRepository();
+

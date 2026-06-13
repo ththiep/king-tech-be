@@ -1,7 +1,8 @@
 import { supabase } from "../models/db.js";
 import { randomUUID } from "node:crypto";
 
-class UploadService {
+export class UploadService {
+  constructor() {}
   /**
    * Uploads a base64 image string to Supabase Storage and returns the public URL.
    * If the string is not a base64 data URL, returns the string as-is.
@@ -82,4 +83,4 @@ class UploadService {
   }
 }
 
-export const uploadService = new UploadService();
+

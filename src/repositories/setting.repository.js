@@ -53,4 +53,4 @@ export class SettingRepository extends BaseRepository {
   }
 }
 
-export const settingRepository = new SettingRepository();
+

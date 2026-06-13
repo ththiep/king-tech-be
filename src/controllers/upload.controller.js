@@ -1,9 +1,9 @@
-import { uploadService } from "../services/upload.service.js";
 import { ApiResponse } from "../utils/response.js";
 import { BadRequestError } from "../utils/errors.js";
 
 export async function upload(req, res, next) {
   try {
+    const uploadService = req.container.resolve('uploadService');
     const { file, name } = req.body;
     if (!file) {
       throw new BadRequestError("File is required");

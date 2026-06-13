@@ -6,6 +6,8 @@ import { productSchema } from "../validations/product.schema.js";
 import { orderSchema } from "../validations/order.schema.js";
 import { contactSchema } from "../validations/contact.schema.js";
 import { attendanceSchema } from "../validations/attendance.schema.js";
+import { createRateLimiter } from "../middlewares/rateLimit.js";
+import { uploadExcelMiddleware } from "../middlewares/upload.middleware.js";
 
 import * as authController from "../controllers/auth.controller.js";
 import * as healthController from "../controllers/health.controller.js";
@@ -17,10 +19,13 @@ import * as attendanceController from "../controllers/attendance.controller.js";
 import * as uploadController from "../controllers/upload.controller.js";
 import * as settingController from "../controllers/setting.controller.js";
 
+const authLimiter = createRateLimiter({ windowMs: 1 * 60 * 1000, max: 10, message: "Too many login attempts. Please try again in a minute." });
+const uploadLimiter = createRateLimiter({ windowMs: 1 * 60 * 1000, max: 20, message: "Too many uploads. Please try again in a minute." });
+
 const router = Router();
 
 // Auth (Public)
-router.post("/api/v1/auth/login", authController.login);
+router.post("/api/v1/auth/login", authLimiter, authController.login);
 
 // Health / Meta (Public)
 router.get("/health", healthController.healthCheck);
@@ -48,14 +53,17 @@ router.post("/api/v1/contacts", requireAuth, validate(contactSchema.create), con
 router.get("/api/v1/employees", requireAuth, validate(employeeSchema.list), employeeController.list);
 router.post("/api/v1/employees", requireAuth, validate(employeeSchema.create), employeeController.create);
 router.post("/api/v1/employees/batch", requireAuth, validate(employeeSchema.batchCreate), employeeController.batchCreate);
+router.get("/api/v1/employees/import-template", requireAuth, employeeController.importTemplate);
+router.post("/api/v1/employees/import", requireAuth, uploadExcelMiddleware.single("file"), employeeController.importData);
 router.delete("/api/v1/employees/batch", requireAuth, validate(employeeSchema.batchDelete), employeeController.batchRemove);
+router.get("/api/v1/employees/export", requireAuth, employeeController.exportCSV);
 router.get("/api/v1/employees/:id", requireAuth, employeeController.getById);
 router.patch("/api/v1/employees/:id", requireAuth, validate(employeeSchema.update), employeeController.update);
 router.put("/api/v1/employees/:id", requireAuth, validate(employeeSchema.update), employeeController.update);
 router.delete("/api/v1/employees/:id", requireAuth, employeeController.remove);
 
 // Uploads
-router.post("/api/v1/upload", requireAuth, uploadController.upload);
+router.post("/api/v1/upload", requireAuth, uploadLimiter, uploadController.upload);
 
 // Attendance
 router.get("/api/v1/attendance", requireAuth, attendanceController.list);
