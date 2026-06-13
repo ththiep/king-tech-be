@@ -19,7 +19,7 @@ Dưới đây là danh sách chi tiết các tính năng đã hoàn thành (Impl
 *   `[x]` **Thao tác hàng loạt (Batch Operations):** Hỗ trợ thêm hàng loạt (Batch Create) và xóa hàng loạt (Batch Delete) nhân viên trong một request duy nhất để tối ưu hiệu năng.
 *   `[x]` **Bộ lọc & Tìm kiếm nâng cao:** Tìm kiếm nhân viên theo tên/mã số, phân trang dữ liệu, và lọc theo phòng ban hoặc trạng thái hoạt động.
 *   `[x]` **Xuất Excel/CSV (Export CSV):** Hỗ trợ kết xuất danh sách nhân viên hiện tại ra file CSV, định dạng UTF-8 BOM chống lỗi font tiếng Việt khi mở bằng Excel.
-*   `[ ]` **Nhập dữ liệu hàng loạt từ Excel (Import CSV/Excel):** Cho phép upload file Excel chứa danh sách hàng trăm nhân sự lên hệ thống để Backend tự phân tích và cập nhật vào DB.
+*   `[x]` **Nhập dữ liệu hàng loạt từ Excel (Import CSV/Excel):** Cho phép upload file Excel chứa danh sách hàng trăm nhân sự lên hệ thống để Backend tự phân tích và cập nhật vào DB. Đã cung cấp sẵn Endpoint `/api/v1/employees/import-template` để tải file CSV mẫu cho người dùng.
 
 ---
 
@@ -55,4 +55,4 @@ Dưới đây là danh sách chi tiết các tính năng đã hoàn thành (Impl
 *   `[x]` **Tùy biến nhãn doanh nghiệp (Custom Tenant Labels):** Cho phép từng Tenant tùy biến nhãn và màu sắc hiển thị cho Phòng ban, Trạng thái chấm công và Trạng thái làm việc.
 *   `[x]` **Bộ chặn giới hạn tần suất (Rate Limiter):** Chống tấn công Brute-force mật khẩu và spam upload tài nguyên bằng cách giới hạn số request từ mỗi IP.
 *   `[x]` **Tách biệt môi trường (.env.development & .env.production):** Cấu hình linh hoạt thông qua các file môi trường độc lập và VS Code debugger.
-*   `[ ]` **Nhật ký hệ thống (Audit Logs):** Bảng lưu trữ chi tiết lịch sử thao tác của các Admin trên hệ thống (Ví dụ: Ai, đã làm gì, sửa trường dữ liệu nào, từ giá trị cũ sang giá trị mới lúc nào) để phục vụ kiểm toán và bảo mật.
+*   `[x]` **Nhật ký hệ thống (Audit Logs):** Bảng lưu trữ chi tiết lịch sử thao tác của các Admin trên hệ thống (Ví dụ: Ai, đã làm gì, sửa trường dữ liệu nào, từ giá trị cũ sang giá trị mới lúc nào) để phục vụ kiểm toán và bảo mật.
