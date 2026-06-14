@@ -1,7 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import request from "supertest";
+import jwt from "jsonwebtoken";
 import { app } from "../src/app.js";
+import { config } from "../src/config/index.js";
 
 test("health endpoint responds with ok", async () => {
   const response = await request(app).get("/health");
@@ -10,15 +12,22 @@ test("health endpoint responds with ok", async () => {
   assert.equal(response.body.data.service, "king-tech-be");
 });
 
-test.skip("products endpoint returns seeded data (requires Supabase)", async () => {
-  const response = await request(app).get("/api/v1/products");
-  assert.equal(response.status, 200);
-  assert.ok(Array.isArray(response.body.data));
-  assert.ok(response.body.data.length >= 2);
-});
+test("orders endpoint is explicitly inactive by default", async () => {
+  const token = jwt.sign(
+    { id: "user-123", tenant: "kingtech", role: "admin" },
+    config.jwtSecret
+  );
 
-test.skip("employees endpoint returns an array (requires Supabase)", async () => {
-  const response = await request(app).get("/api/v1/employees");
-  assert.equal(response.status, 200);
-  assert.ok(Array.isArray(response.body.data));
+  const response = await request(app)
+    .post("/api/v1/orders")
+    .set("Authorization", `Bearer ${token}`)
+    .send({
+      customerName: "Test Customer",
+      items: [{ productId: "prod-1", productName: "Product", quantity: 1, price: 10 }],
+      totalAmount: 10
+    });
+
+  assert.equal(response.status, 503);
+  assert.equal(response.body.success, false);
+  assert.equal(response.body.error.code, "module_inactive");
 });

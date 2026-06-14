@@ -1,4 +1,6 @@
 import { ApiResponse } from "../utils/response.js";
+import { EmployeeResponseDto } from "../dtos/responses/employee.response.dto.js";
+import { CreateEmployeeRequestDto, UpdateEmployeeRequestDto } from "../dtos/requests/employee.request.dto.js";
 
 export async function list(req, res, next) {
   try {
@@ -13,7 +15,7 @@ export async function list(req, res, next) {
     res.status(200).json({
       success: true,
       message: "Employees retrieved successfully",
-      data: result.data,
+      data: EmployeeResponseDto.fromEntities(result.data),
       meta: result.meta
     });
   } catch (err) {
@@ -24,8 +26,9 @@ export async function list(req, res, next) {
 export async function create(req, res, next) {
   try {
     const employeeService = req.container.resolve('employeeService');
-    const employee = await employeeService.createEmployee(req.body, req.user);
-    ApiResponse.success(res, employee, "Employee created successfully", 201);
+    const dto = new CreateEmployeeRequestDto(req.body);
+    const employee = await employeeService.createEmployee(dto, req.user);
+    ApiResponse.success(res, EmployeeResponseDto.fromEntity(employee), "Employee created successfully", 201);
   } catch (err) {
     next(err);
   }
@@ -35,7 +38,7 @@ export async function batchCreate(req, res, next) {
   try {
     const employeeService = req.container.resolve('employeeService');
     const employees = await employeeService.batchCreateEmployees(req.body.employees, req.user);
-    ApiResponse.success(res, employees, "Batch created successfully", 201);
+    ApiResponse.success(res, EmployeeResponseDto.fromEntities(employees), "Batch created successfully", 201);
   } catch (err) {
     next(err);
   }
@@ -45,7 +48,7 @@ export async function getById(req, res, next) {
   try {
     const employeeService = req.container.resolve('employeeService');
     const employee = await employeeService.getEmployeeById(req.params.id, req.user);
-    ApiResponse.success(res, employee, "Employee retrieved successfully");
+    ApiResponse.success(res, EmployeeResponseDto.fromEntity(employee), "Employee retrieved successfully");
   } catch (err) {
     next(err);
   }
@@ -54,8 +57,9 @@ export async function getById(req, res, next) {
 export async function update(req, res, next) {
   try {
     const employeeService = req.container.resolve('employeeService');
-    const employee = await employeeService.updateEmployee(req.params.id, req.body, req.user);
-    ApiResponse.success(res, employee, "Employee updated successfully");
+    const dto = new UpdateEmployeeRequestDto(req.body);
+    const employee = await employeeService.updateEmployee(req.params.id, dto, req.user);
+    ApiResponse.success(res, EmployeeResponseDto.fromEntity(employee), "Employee updated successfully");
   } catch (err) {
     next(err);
   }
@@ -134,7 +138,7 @@ export async function importData(req, res, next) {
 
     const createdEmployees = await employeeService.importEmployees(req.file.buffer, req.user);
     
-    ApiResponse.success(res, createdEmployees, `Import thành công ${createdEmployees.length} nhân viên.`, 201);
+    ApiResponse.success(res, EmployeeResponseDto.fromEntities(createdEmployees), `Import thành công ${createdEmployees.length} nhân viên.`, 201);
   } catch (err) {
     next(err);
   }

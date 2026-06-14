@@ -8,6 +8,8 @@ import { contactSchema } from "../validations/contact.schema.js";
 import { attendanceSchema } from "../validations/attendance.schema.js";
 import { createRateLimiter } from "../middlewares/rateLimit.js";
 import { uploadExcelMiddleware } from "../middlewares/upload.middleware.js";
+import { config } from "../config/index.js";
+import { ApiResponse } from "../utils/response.js";
 
 import * as authController from "../controllers/auth.controller.js";
 import * as healthController from "../controllers/health.controller.js";
@@ -22,9 +24,17 @@ import * as settingController from "../controllers/setting.controller.js";
 const authLimiter = createRateLimiter({ windowMs: 1 * 60 * 1000, max: 10, message: "Too many login attempts. Please try again in a minute." });
 const uploadLimiter = createRateLimiter({ windowMs: 1 * 60 * 1000, max: 20, message: "Too many uploads. Please try again in a minute." });
 
+const inactiveModule = (moduleName) => (req, res) => ApiResponse.error(
+  res,
+  `${moduleName} module is not active`,
+  503,
+  { code: "module_inactive", module: moduleName }
+);
+
 const router = Router();
 
 // Auth (Public)
+router.post("/api/v1/auth/register", authLimiter, authController.register);
 router.post("/api/v1/auth/login", authLimiter, authController.login);
 
 // Health / Meta (Public)
@@ -41,9 +51,14 @@ router.get("/api/v1/products/:id", requireAuth, productController.getById);
 router.patch("/api/v1/products/:id", requireAuth, validate(productSchema.update), productController.update);
 router.put("/api/v1/products/:id", requireAuth, validate(productSchema.update), productController.update);
 
-// Orders
-router.get("/api/v1/orders", requireAuth, orderController.list);
-router.post("/api/v1/orders", requireAuth, validate(orderSchema.create), orderController.create);
+// Orders (currently inactive; enable with ORDER_MODULE_ACTIVE=true)
+if (config.features.orders) {
+  router.get("/api/v1/orders", requireAuth, orderController.list);
+  router.post("/api/v1/orders", requireAuth, validate(orderSchema.create), orderController.create);
+} else {
+  router.get("/api/v1/orders", requireAuth, inactiveModule("orders"));
+  router.post("/api/v1/orders", requireAuth, inactiveModule("orders"));
+}
 
 // Contacts
 router.get("/api/v1/contacts", requireAuth, contactController.list);

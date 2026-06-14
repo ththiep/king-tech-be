@@ -6,21 +6,21 @@ Báo cáo này tập trung phân tích dự án **King Tech Backend** dưới l�
 
 ## 🏗️ 1. Đánh Giá Kiến Trúc Dự Án (Project Structure Review)
 
-Dự án vừa trải qua đợt tái cấu trúc (Refactoring) lớn nhằm đạt chuẩn **SOLID 100%**. 
+Dự án vừa trải qua đợt tái cấu trúc (Refactoring) theo hướng Clean Architecture và dễ kiểm thử hơn.
 
 **Kiến trúc hiện tại: Clean Architecture + Dependency Injection (DI)**
 - **Awilix DI Container (`src/container.js`)**: Toàn bộ hệ thống hiện tại không còn cảnh các file `require/import` chéo lẫn nhau gây ra "Spaghetti code". Mọi kết nối giữa Controller - Service - Repository đều được quản lý tập trung tại một Container duy nhất.
-- **Request-Scoped DI**: Mỗi một request gọi lên Server đều sinh ra một scope riêng biệt chứa thông tin người dùng (`req.user`) và tenant (`req.tenant`). Các Service được tiêm vào bộ nhớ một cách tự động và độc lập, loại bỏ hoàn toàn rủi ro rò rỉ dữ liệu giữa 2 request chạy song song.
-- **Khả năng mở rộng (Scalability)**: Nhờ việc tiêm phụ thuộc qua Constructor (`constructor({ employeeRepository })`), việc viết Unit Test trở nên dễ dàng (đã pass 33/33 tests). Thay đổi logic Database giờ đây chỉ cần sửa Repository mà không làm sập Controller.
+- **Request-Scoped DI**: Mỗi request tạo một scope riêng trong `src/app.js`; service được đăng ký scoped, còn repository là stateless singleton. Cách này đủ cô lập service state theo request mà không nhân bản kết nối DB không cần thiết.
+- **Khả năng mở rộng (Scalability)**: Nhờ việc tiêm phụ thuộc qua Constructor (`constructor({ employeeRepository })`), việc viết Unit Test trở nên dễ dàng. Thay đổi logic Database chủ yếu nằm ở Repository thay vì lan sang Controller.
 
 ---
 
 ## 🧹 2. Rà Soát Rác & Mã Chết (Deadcode & Garbage Review)
 
-Chúng ta đã tiến hành quét toàn bộ dự án bằng các công cụ chuyên sâu (`knip`, `depcheck`):
-- **Phân tích thư viện (Dependencies):** Mọi package khai báo trong `package.json` đều được sử dụng hợp lý. Không có thư viện thừa, không có rác npm.
-- **Rà soát mã chết (Deadcode):** Toàn bộ file rác (scratch files), biến không sử dụng (unused exports) và các dòng code thừa đều đã được dọn dẹp sạch sẽ. Hệ thống ghi nhận **0 Lỗi Deadcode**.
-- **Kịch bản dữ liệu (Seed Data):** File `scripts/seed_100_employees.mjs` đã được tinh chỉnh để giả lập cả trăm nhân viên và 2.100+ bản ghi chấm công cực kỳ sát thực tế, tạo nền tảng vững chắc để test tính năng mới.
+Hiện tại repo đã dọn các phần chính và `scratch/` được loại khỏi git bằng `.gitignore`. Các claim về `knip`/`depcheck` chỉ nên ghi nhận sau khi chạy lại trong CI hoặc local dev.
+- **Phân tích thư viện (Dependencies):** Package hiện tại gọn, chưa thấy dependency thừa rõ ràng qua `npm ls --depth=0`.
+- **Rà soát mã chết (Deadcode):** Chưa có bước deadcode scan tự động trong `package.json`; nên bổ sung script riêng nếu muốn giữ tiêu chí này lâu dài.
+- **Kịch bản dữ liệu (Seed Data):** File `scripts/seed_100_employees.mjs` hỗ trợ tạo dữ liệu nhân sự/chấm công để thử nghiệm, phụ thuộc server local và token dev.
 
 ---
 
@@ -36,10 +36,15 @@ Chúng ta đã tiến hành quét toàn bộ dự án bằng các công cụ chu
 *   **Pending:** Cần xây dựng API trả về bảng tổng hợp công tháng (Monthly Summary) phục vụ tính lương.
 
 ### 3.3. Bảo Mật & Hệ Thống (Security & System)
-*   **Trạng thái:** Hoàn thành xuất sắc.
-*   **Điểm nhấn:** Đã vá toàn bộ các khoản nợ kỹ thuật:
-    *   Tích hợp bộ chặn `Rate Limiter` chống Brute-force và DDoS.
-    *   Tích hợp bảng `Audit Logs` lưu vết toàn bộ lịch sử thao tác của các Admin trên hệ thống. 
+*   **Trạng thái:** Hoàn thành nền tảng, còn một số phần cần mở rộng.
+*   **Điểm nhấn:**
+    *   Tích hợp bộ chặn `Rate Limiter` cơ bản cho login/upload.
+    *   Production config đã fail fast nếu thiếu Supabase env hoặc `JWT_SECRET`.
+    *   `Audit Logs` hiện đã phủ thao tác nhân sự; cần mở rộng cho các module còn lại trước khi coi là audit toàn hệ thống.
+
+### 3.4. Đơn Hàng & Tồn Kho (Order/Inventory)
+*   **Trạng thái:** Chưa active.
+*   **Điểm nhấn:** Runtime trả `503 module_inactive` cho `/api/v1/orders` mặc định. Chỉ bật lại bằng `ORDER_MODULE_ACTIVE=true` khi xác định tiếp tục phát triển module này.
 
 ---
 
@@ -55,15 +60,15 @@ gantt
     Dọn dẹp Deadcode & Cấu trúc     :done, des3, 2026-06-13, 2026-06-13
     section Phase 2 (Data Processing)
     Báo cáo chấm công tháng         :active, des4, 2026-06-13, 2026-06-15
-    Logic tự động trừ tồn kho       : des5, 2026-06-16, 2026-06-18
-    Giao dịch đơn hàng (Transaction): des6, 2026-06-18, 2026-06-20
+    Cấu hình ca làm việc            : des5, 2026-06-16, 2026-06-18
+    Xuất báo cáo chấm công Excel    : des6, 2026-06-18, 2026-06-20
 ```
 
 ---
 
 ## 💬 5. Định Hướng Phát Triển Tiếp Theo (Sprint Goal)
 
-Dưới góc độ PM/PO, sau khi rà soát hiện trạng dự án và lượng dữ liệu khổng lồ (2.100+ bản ghi chấm công) vừa được Seed, hướng đi (Next Direction) bắt buộc phải là giải quyết bài toán cốt lõi của phân hệ HRM: **Tiền lương và Chấm công**.
+Dưới góc độ PM/PO, hướng đi nên ưu tiên là bài toán cốt lõi của phân hệ HRM: **Tiền lương và Chấm công**. Module Order/Inventory đã được đánh dấu inactive nên không nằm trong sprint hiện tại.
 
 **Mục tiêu Sprint tới: Hệ thống Báo cáo Tổng hợp Công (Monthly Attendance Summary)**
 
@@ -84,4 +89,4 @@ Dưới góc độ PM/PO, sau khi rà soát hiện trạng dự án và lượng
 > [!IMPORTANT]
 > **Yêu cầu (Acceptance Criteria):** API tổng hợp phải chạy cực kỳ tối ưu vì lượng bản ghi rất lớn (khoảng 2.000 - 3.000 dòng mỗi tháng/tenant). Hãy cân nhắc viết lệnh raw SQL hoặc dùng Supabase RPC/Views nếu ORM quá chậm.
 
-Hãy bắt tay vào thiết kế Implementation Plan cho tính năng API Tổng Hợp Công Tháng này ngay lập tức!
+Khuyến nghị tiếp theo: lập implementation plan riêng cho API Tổng Hợp Công Tháng, bao gồm schema/query strategy, response contract, và test cases cho nhiều tenant.

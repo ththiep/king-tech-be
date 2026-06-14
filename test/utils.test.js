@@ -15,6 +15,7 @@ import {
   InternalServerError,
 } from "../src/utils/errors.js";
 import { container } from "../src/container.js";
+import { buildConfig } from "../src/config/index.js";
 
 test("transform utilities", async (t) => {
   await t.test("toSnakeCase converts camelCase to snake_case", () => {
@@ -114,6 +115,29 @@ test("custom error classes", async (t) => {
     const error = new InternalServerError();
     assert.equal(error.statusCode, 500);
     assert.equal(error.message, "Internal Server Error");
+  });
+});
+
+test("configuration", async (t) => {
+  await t.test("orders feature flag is inactive by default", () => {
+    const result = buildConfig({ NODE_ENV: "development" });
+    assert.equal(result.features.orders, false);
+  });
+
+  await t.test("orders feature flag can be enabled explicitly", () => {
+    const result = buildConfig({ NODE_ENV: "development", ORDER_MODULE_ACTIVE: "true" });
+    assert.equal(result.features.orders, true);
+  });
+
+  await t.test("production requires an explicit JWT secret", () => {
+    assert.throws(
+      () => buildConfig({
+        NODE_ENV: "production",
+        SUPABASE_URL: "https://example.supabase.co",
+        SUPABASE_SERVICE_ROLE_KEY: "service-role-key"
+      }),
+      /JWT_SECRET/
+    );
   });
 });
 

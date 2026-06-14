@@ -6,12 +6,15 @@ import routes from "./routes/index.js";
 import { randomUUID } from "node:crypto";
 import { ApiResponse } from "./utils/response.js";
 import { container } from "./container.js";
+import { logger } from "./utils/logger.js";
+import { morganMiddleware } from "./middlewares/morgan.js";
 
 export const app = express();
 
 // Middleware
 app.use(cors({ origin: config.corsOrigin }));
 app.use(express.json({ limit: "1mb" }));
+app.use(morganMiddleware);
 
 // Inject Request ID
 app.use((req, res, next) => {
@@ -36,7 +39,7 @@ app.use((req, res) => {
 
 // Global Error Handler
 app.use((err, req, res, next) => {
-  console.error(`[ERROR] ${req.method} ${req.path} ->`, err);
+  logger.error(`${req.method} ${req.path} -> ${err.message}`, { stack: err.stack, requestId: req.id });
 
   const statusCode = err.statusCode || 500;
   

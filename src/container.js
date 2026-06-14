@@ -34,14 +34,14 @@ container.register({
   settingRepository: asClass(SettingRepository).singleton(),
 
   // Services
-  attendanceService: asClass(AttendanceService).singleton(),
-  auditLogService: asClass(AuditLogService).singleton(),
-  contactService: asClass(ContactService).singleton(),
-  employeeService: asClass(EmployeeService).singleton(),
-  orderService: asClass(OrderService).singleton(),
-  productService: asClass(ProductService).singleton(),
-  settingService: asClass(SettingService).singleton(),
-  uploadService: asClass(UploadService).singleton(),
+  attendanceService: asClass(AttendanceService).scoped(),
+  auditLogService: asClass(AuditLogService).scoped(),
+  contactService: asClass(ContactService).scoped(),
+  employeeService: asClass(EmployeeService).scoped(),
+  orderService: asClass(OrderService).scoped(),
+  productService: asClass(ProductService).scoped(),
+  settingService: asClass(SettingService).scoped(),
+  uploadService: asClass(UploadService).scoped(),
 });
 
 export { container };

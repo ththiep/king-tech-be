@@ -36,23 +36,43 @@ Dự án áp dụng các quy chuẩn đặt tên rất khắt khe và nhất qu�
 ### 3.1. Phân Quyền Khởi Tạo (Dependency Injection - Awilix)
 - Code cũ thường có anti-pattern: `const service = new EmployeeService()`.
 - Code hiện tại sử dụng: `const attendanceService = req.container.resolve('attendanceService');`.
-- **Đánh giá:** 10/10. Việc nhường quyền khởi tạo class cho Awilix giúp tối ưu bộ nhớ, ngăn chặn memory leak và giải quyết hoàn toàn tình trạng Circular Dependency.
+- **Đánh giá:** Tốt. Việc nhường quyền khởi tạo class cho Awilix giúp giảm import chéo và làm service dễ test hơn. Service hiện đăng ký `scoped()`, repository giữ `singleton()` vì không chứa request state.
 
 ### 3.2. Bắt Lỗi và Kiểm Duyệt (Error Handling & Validation)
 - Controller được tinh gọn tối đa bằng khối `try/catch` bắt lỗi ném ra `next(err)`.
 - Các lỗi nghiệp vụ ném ra các Class lỗi chuyên biệt: `throw new NotFoundError("Employee not found")`.
-- Dữ liệu đầu vào đi qua Zod Middleware (chặn từ cổng `Router`). Service không cần tốn dòng code nào để check kiểu dữ liệu của Payload. Rất DRY (Don't Repeat Yourself).
+- Dữ liệu đầu vào đi qua Zod Middleware (chặn từ cổng `Router`). Riêng import Excel/CSV cũng chạy lại schema batch create ở service để tránh dữ liệu file bypass validation.
 
-### 3.3. Bảo Mật & Đa Doanh Nghiệp (Security & Multi-Tenant)
+### 3.3. Dữ Liệu Quản Lý Bằng Models (Data Transfer Objects)
+- Thay vì lấy thẳng object từ DB và ném về Frontend (rất dễ lộ field nhạy cảm), dự án hiện tại tuân thủ 100% nguyên tắc dùng Model/DTO làm ranh giới.
+- Mọi kết quả từ DB sẽ đi qua hàm `ResponseDto.fromEntity(data)`. Mọi request đầu vào sẽ đi qua `new RequestDto(req.body)`.
+- **Đánh giá:** 10/10. Cơ chế này giúp Backend "đóng băng" contract trả về, đảm bảo API trả ra Frontend không bao giờ bị thừa/thiếu trường dữ liệu.
+
+### 3.4. Bảo Mật & Đa Doanh Nghiệp (Security & Multi-Tenant)
 - Tuyệt đối không hardcode `tenant` ID. Tenant được bóc tách từ JWT token thông qua Middleware.
 - Bất kỳ API thao tác dữ liệu nào ở `Service` (ví dụ `upsertAttendance`) đều chủ động nhét `tenant: user.tenant` vào dữ liệu ghi và gọi hàm xác thực trước khi cập nhật.
 
+### 3.5. Hệ Thống Logging & Tracing
+- Đã loại bỏ hoàn toàn việc phụ thuộc vào `console.error` (dễ mất log khi crash).
+- Tích hợp **Winston** và **Morgan**. Ghi nhận log trực tiếp ra các file cắt ngày tự động (`winston-daily-rotate-file`) bằng định dạng JSON.
+- **Đánh giá:** Rất cao. Luồng lỗi nay đã được gắn chặt với Stack Trace và Request ID, hoàn toàn sẵn sàng cho môi trường Production và dễ dàng tích hợp ELK stack hoặc Datadog.
+
 ---
 
-## 🔍 4. Kết Luận & Đề Xuất Cải Tiến Nhỏ
+## ✅ 4. Baseline Kỹ Thuật Hiện Tại
 
-Dự án hiện tại có chất lượng mã nguồn cực kỳ cao cấp, đạt tiêu chuẩn Enterprise (Doanh nghiệp). Codebase gọn gàng, đọc lướt qua có thể hiểu ngay luồng chạy của ứng dụng.
+- **Test suite:** `npm test` hiện pass 38/38, không có test bị skip. Các test này tập trung vào unit/API logic không phụ thuộc Supabase thật.
+- **Schema:** `supabase-schema.sql` là schema chuẩn cho project mới; `schema-update-align-code.sql` dùng để nâng DB cũ về đúng contract code hiện tại.
+- **Feature flags:** Order/Inventory đang inactive mặc định qua `ORDER_MODULE_ACTIVE=false`; API order trả `503 module_inactive` nếu chưa bật flag.
+- **Production config:** App sẽ fail fast trong production nếu thiếu `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, hoặc `JWT_SECRET`.
+
+---
+
+## 🔍 5. Kết Luận & Đề Xuất Cải Tiến Nhỏ
+
+Dự án hiện tại có nền kiến trúc gọn, dễ đọc và dễ mở rộng. Các phần active chính là Auth, Employee, Attendance, Settings, Upload; module Order/Inventory đang được đánh dấu inactive ở runtime.
 
 **Một vài cải tiến nhỏ có thể làm trong tương lai:**
 1. **Dùng TS (TypeScript):** Vì dự án đang dùng JSDoc hoặc Vanilla JS, khi số lượng model lên tới hàng chục cái, việc chuyển đổi dự án sang TypeScript sẽ giúp kiểm soát kiểu dữ liệu mạnh hơn (tránh gõ sai tên trường dữ liệu).
-2. **Soft Delete mặc định:** Hàm `BaseRepository.list()` đã chủ động bọc `.is("deleted_at", null)`. Cần đảm bảo 100% các bảng trên Supabase đều có trường `deleted_at` (cả bảng Attendance) để tính năng Soft Delete này chạy ổn định, không bị ném lỗi.
+2. **Integration Test Supabase:** Main test suite hiện tránh phụ thuộc DB thật. Khi có database staging, nên bổ sung nhóm test riêng cho tenant isolation và repository query.
+3. **Audit toàn hệ thống:** Audit log hiện tập trung ở Employee. Product, Settings, Upload và các module tương lai cần bổ sung log trước khi công bố là audit toàn hệ thống.

@@ -1,6 +1,7 @@
 import { NotFoundError, BadRequestError } from "../utils/errors.js";
 import { randomUUID } from "node:crypto";
 import * as xlsx from "xlsx";
+import { employeeSchema } from "../validations/employee.schema.js";
 
 export class EmployeeService {
   constructor({ employeeRepository, auditLogService }) {
@@ -175,15 +176,34 @@ export class EmployeeService {
         };
       });
 
-      // Lọc bỏ những row không có Tên hoặc Email
-      const validPayloads = employeesPayload.filter(emp => emp.name && emp.email);
+      const nonEmptyPayloads = employeesPayload.filter((emp) =>
+        Object.values(emp).some((value) => value !== undefined && value !== null && value !== "")
+      );
 
-      if (validPayloads.length === 0) {
-        throw new BadRequestError("Không tìm thấy dữ liệu hợp lệ (yêu cầu có Tên và Email).");
+      if (nonEmptyPayloads.length === 0) {
+        throw new BadRequestError("Không tìm thấy dữ liệu hợp lệ.");
+      }
+
+      const validation = employeeSchema.batchCreate.safeParse({
+        body: { employees: nonEmptyPayloads }
+      });
+
+      if (!validation.success) {
+        const details = validation.error.issues
+          .slice(0, 10)
+          .map((issue) => {
+            const rowIndex = Number(issue.path[2]);
+            const rowLabel = Number.isFinite(rowIndex) ? `Dòng ${rowIndex + 2}` : "Dữ liệu";
+            const field = String(issue.path.at(-1));
+            return `${rowLabel}: ${field} - ${issue.message}`;
+          })
+          .join("; ");
+        const suffix = validation.error.issues.length > 10 ? "; ..." : "";
+        throw new BadRequestError(`Dữ liệu import không hợp lệ: ${details}${suffix}`);
       }
 
       // Tái sử dụng hàm batchCreateEmployees
-      return await this.batchCreateEmployees(validPayloads, user);
+      return await this.batchCreateEmployees(validation.data.body.employees, user);
 
     } catch (error) {
       if (error instanceof BadRequestError) throw error;
@@ -191,5 +211,4 @@ export class EmployeeService {
     }
   }
 }
-
 

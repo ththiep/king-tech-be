@@ -1,15 +1,14 @@
 import { config } from "./config/index.js";
 import { app } from "./app.js";
+import { logger } from "./utils/logger.js";
 
 const server = app.listen(config.port, config.host, () => {
-  process.stdout.write(
-    `King Tech backend (Express) listening on http://${config.host}:${config.port} (${config.env})\n`,
-  );
+  logger.info(`King Tech backend (Express) listening on http://${config.host}:${config.port} (${config.env})`);
 });
 
 function shutdown(signal) {
   server.close(() => {
-    process.stdout.write(`Received ${signal}, server closed cleanly\n`);
+    logger.info(`Received ${signal}, server closed cleanly`);
     process.exit(0);
   });
 }
